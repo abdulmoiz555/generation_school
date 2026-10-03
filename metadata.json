@@ -1,0 +1,6 @@
+{
+  "name": "EduManage - School Management System",
+  "description": "Comprehensive PHP & MySQL School Management System with role-based access, student admissions, attendance, fee collection, examinations, library, HR payroll, and printable reports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

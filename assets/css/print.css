@@ -1,0 +1,138 @@
+/**
+ * EduManage - Printable Document Stylesheet
+ * Optimized for A4 / Letter format and thermal receipts
+ */
+
+@media print {
+  /* Hide interactive interface components */
+  .app-sidebar,
+  .app-navbar,
+  .app-footer,
+  .sidebar-backdrop,
+  .no-print,
+  .btn,
+  .pagination,
+  .search-box,
+  .dataTables_filter,
+  .dataTables_length,
+  .dataTables_paginate,
+  .dataTables_info,
+  .quick-actions-bar,
+  .modal-backdrop,
+  .alert {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 12pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  .app-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .page-container {
+    padding: 0 !important;
+  }
+
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Printable Document Container */
+  .printable-area {
+    width: 100% !important;
+    margin: 0 auto;
+    padding: 15mm;
+  }
+
+  /* Fee Receipt Print Format */
+  .receipt-box {
+    border: 2px solid #222 !important;
+    padding: 20px;
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+  }
+
+  .receipt-header {
+    text-align: center;
+    border-bottom: 2px double #222;
+    padding-bottom: 12px;
+    margin-bottom: 15px;
+  }
+
+  .receipt-title {
+    font-size: 18pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .receipt-subtitle {
+    font-size: 10pt;
+    color: #333;
+  }
+
+  .table-print {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+  }
+
+  .table-print th,
+  .table-print td {
+    border: 1px solid #333 !important;
+    padding: 6px 10px;
+    font-size: 10pt;
+  }
+
+  .table-print th {
+    background-color: #eee !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .receipt-signatures {
+    margin-top: 50px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .sign-line {
+    border-top: 1px solid #000;
+    width: 180px;
+    text-align: center;
+    padding-top: 5px;
+    font-size: 9pt;
+  }
+
+  /* Student ID Card Printing */
+  .id-card-sheet {
+    display: grid;
+    grid-template-columns: repeat(2, 85mm);
+    gap: 10mm;
+    page-break-after: always;
+  }
+
+  .id-card {
+    width: 85.6mm;
+    height: 53.98mm;
+    border: 1.5px solid #1e293b !important;
+    border-radius: 4mm;
+    padding: 4mm;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+    position: relative;
+    overflow: hidden;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

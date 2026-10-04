@@ -84,11 +84,43 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<!-- Standout Print Format Selector Banner -->
+<div class="card border-0 bg-white shadow-sm rounded-4 p-3 mb-4 no-print border-start border-success border-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 mb-1">
+                <i class="fas fa-check-circle me-1"></i> Receipt #<?= e($payment['receipt_no']) ?> Ready
+            </span>
+            <h5 class="fw-bold text-dark mb-0">Print Slip Options:</h5>
+            <div class="text-muted small">Choose <strong>Half A4 Dual Slip</strong> (School & Parent copy side-by-side) or <strong>POS Thermal (80mm)</strong>.</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $payment['id'] ?>" class="btn btn-success fw-bold rounded-pill px-3 shadow-sm">
+                <i class="fas fa-copy me-1"></i> Print Half A4 Dual Slip
+            </a>
+            <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $payment['id'] ?>" class="btn btn-dark fw-bold rounded-pill px-3 shadow-sm">
+                <i class="fas fa-receipt me-1"></i> Print POS Thermal (80mm)
+            </a>
+            <button type="button" onclick="triggerPrint()" class="btn btn-primary fw-bold rounded-pill px-3 shadow-sm">
+                <i class="fas fa-print me-1"></i> Print Full A4
+            </button>
+            <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $payment['id'] ?>&autoprint=1" target="_blank" class="btn btn-outline-primary fw-bold rounded-pill px-3 shadow-sm">
+                <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
+            </a>
+        </div>
+    </div>
+</div>
+
 <div class="printable-area py-3">
     <div class="row justify-content-center">
         <div class="col-12 col-lg-9">
             
-            <div class="receipt-box bg-white rounded-4 shadow-sm border p-4 p-md-5">
+            <div class="receipt-box bg-white rounded-4 shadow-sm border p-4 p-md-5 position-relative overflow-hidden">
+                <!-- Centered School Logo Watermark -->
+                <div class="receipt-watermark" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; height: 280px; opacity: 0.14; pointer-events: none; z-index: 0; display: flex; align-items: center; justify-content: center; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                    <img src="<?= BASE_PATH ?>/assets/img/generation_school_logo.jpg" alt="Watermark" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; filter: grayscale(15%); -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                </div>
+                <div style="position: relative; z-index: 1;">
                 
                 <!-- School Letterhead Header -->
                 <div class="receipt-header pb-4 mb-4 border-bottom text-center">
@@ -239,10 +271,42 @@ require_once __DIR__ . '/../includes/header.php';
                     <?= e(getSetting('receipt_footer_note', 'This is a computer generated official fee receipt and does not require an embossed stamp.')) ?>
                 </div>
 
+                </div><!-- end inner content z-index wrapper -->
             </div>
 
         </div>
     </div>
 </div>
+
+<script>
+function triggerPrint() {
+    window.focus();
+    try {
+        window.print();
+    } catch (e) {
+        console.warn('Print error:', e);
+        try {
+            if (window.parent && window.parent !== window && window.parent.print) {
+                window.parent.focus();
+                window.parent.print();
+            }
+        } catch(ex) {}
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        triggerPrint();
+    }
+});
+
+window.addEventListener('load', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('autoprint') === '1' || params.get('print') === '1') {
+        setTimeout(triggerPrint, 400);
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

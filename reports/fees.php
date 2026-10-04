@@ -205,17 +205,15 @@ require_once __DIR__ . '/../includes/header.php';
                         <td><span class="badge bg-light text-dark border"><?= e($p['payment_method'] ?: 'Cash') ?></span></td>
                         <td class="text-end fw-bold text-success"><?= formatCurrency($p['paid_amount']) ?></td>
                         <td class="text-end no-print text-nowrap">
-                            <div class="btn-group btn-group-sm">
-                                <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $p['id'] ?>" class="btn btn-outline-primary btn-sm py-0 px-2" title="Full A4 Receipt">
-                                    <i class="fas fa-print"></i>
-                                </a>
-                                <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $p['id'] ?>" class="btn btn-outline-primary btn-sm py-0 px-2" title="Half A4 Dual Slip">
-                                    <i class="fas fa-copy"></i>
-                                </a>
-                                <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $p['id'] ?>" class="btn btn-outline-dark btn-sm py-0 px-2" title="POS Thermal Slip">
-                                    <i class="fas fa-receipt"></i>
-                                </a>
-                            </div>
+                            <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-success rounded-pill px-2 py-0 shadow-sm me-1" title="Print Half A4 Dual Slip (School + Parent)">
+                                <i class="fas fa-copy me-1"></i> Half A4
+                            </a>
+                            <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-dark rounded-pill px-2 py-0 shadow-sm me-1" title="Print POS 80mm Slip">
+                                <i class="fas fa-receipt me-1"></i> POS
+                            </a>
+                            <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" title="Full A4 Receipt">
+                                <i class="fas fa-print"></i>
+                            </a>
                         </td>
                     </tr>
                     <?php endforeach; ?>

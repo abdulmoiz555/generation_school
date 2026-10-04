@@ -352,6 +352,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <th>Student</th>
                                 <th>Paid</th>
                                 <th>Method</th>
+                                <th class="text-end">Print Slip</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -370,6 +371,17 @@ require_once __DIR__ . '/includes/header.php';
                                     <td class="fw-bold text-success"><?= formatCurrency($pay['paid_amount']) ?></td>
                                     <td>
                                         <span class="badge bg-light text-dark border"><?= e($pay['payment_method']) ?></span>
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $pay['id'] ?>" class="btn btn-sm btn-success rounded-pill px-2 py-0 shadow-sm me-1" title="Print Half A4 Dual Slip (School + Parent)">
+                                            <i class="fas fa-copy me-1"></i> Half A4
+                                        </a>
+                                        <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $pay['id'] ?>" class="btn btn-sm btn-dark rounded-pill px-2 py-0 shadow-sm me-1" title="Print 80mm POS Thermal Slip">
+                                            <i class="fas fa-receipt me-1"></i> POS
+                                        </a>
+                                        <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $pay['id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" title="Full A4 Receipt">
+                                            <i class="fas fa-print"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

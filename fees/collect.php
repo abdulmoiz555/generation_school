@@ -14,6 +14,7 @@ $studentId = (int)($_GET['student_id'] ?? 0);
 $selectedStudent = null;
 $unpaidFees = [];
 $previousBalance = 0.00;
+$studentPayments = [];
 
 if ($studentId > 0) {
     $selectedStudent = getStudent($studentId);
@@ -28,11 +29,17 @@ if ($studentId > 0) {
         ");
         $stmt->execute([$studentId]);
         $unpaidFees = $stmt->fetchAll();
+
+        // Fetch recent payments for instant slip printing
+        $spStmt = $pdo->prepare("SELECT * FROM fee_payments WHERE student_id = ? ORDER BY id DESC LIMIT 5");
+        $spStmt->execute([$studentId]);
+        $studentPayments = $spStmt->fetchAll();
     }
 }
 
-// Available discounts
+// Available discounts & scholarships
 $discounts = $pdo->query("SELECT * FROM fee_discounts WHERE status = 'active'")->fetchAll();
+$scholarships = $pdo->query("SELECT * FROM scholarships WHERE status = 'active' ORDER BY category ASC")->fetchAll();
 
 // Handle Collection Submit
 $error = '';
@@ -53,9 +60,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $transactionRef = trim($_POST['transaction_ref'] ?? '');
         $remarks = trim($_POST['remarks'] ?? '');
         $selectedFeeInvoiceId = !empty($_POST['student_fee_id']) ? (int)$_POST['student_fee_id'] : null;
+        $scholarshipId = !empty($_POST['scholarship_id']) ? (int)$_POST['scholarship_id'] : null;
+        $concessionType = trim($_POST['concession_type'] ?? '');
+        if ($scholarshipId && empty($concessionType)) {
+            $scInfo = $pdo->query("SELECT title FROM scholarships WHERE id = {$scholarshipId}")->fetch();
+            if ($scInfo) $concessionType = $scInfo['title'];
+        }
 
-        if ($paidAmount <= 0) {
-            $error = "Please enter a valid payment amount greater than zero.";
+        if ($paidAmount < 0) {
+            $error = "Please enter a valid payment amount.";
         } else {
             try {
                 $pdo->beginTransaction();
@@ -64,17 +77,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $pStmt = $pdo->prepare("
                     INSERT INTO fee_payments (
                         receipt_no, session_id, student_id, payment_date, 
-                        total_amount, discount_amount, fine_amount, paid_amount, 
+                        total_amount, discount_amount, scholarship_id, concession_type, fine_amount, paid_amount, 
                         balance_remaining, payment_method, transaction_ref, remarks, received_by
                     ) VALUES (
                         ?, ?, ?, ?, 
-                        ?, ?, ?, ?, 
+                        ?, ?, ?, ?, ?, ?, 
                         ?, ?, ?, ?, ?
                     )
                 ");
                 $pStmt->execute([
                     $receiptNo, $activeSession['id'], $stId, $paymentDate,
-                    $totalPayable, $discountAmount, $fineAmount, $paidAmount,
+                    $totalPayable, $discountAmount, $scholarshipId, $concessionType, $fineAmount, $paidAmount,
                     $balanceRemaining, $paymentMethod, $transactionRef, $remarks, getCurrentUserId()
                 ]);
                 $paymentId = (int)$pdo->lastInsertId();
@@ -94,7 +107,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $pdo->commit();
                 logAudit('COLLECT_FEE', 'Fees', $paymentId, "Collected {$paidAmount} with receipt {$receiptNo} for student {$stId}");
                 setFlashMessage('success', "Payment successfully recorded! Receipt #{$receiptNo} generated.");
-                header("Location: " . BASE_PATH . "/fees/receipt.php?id=" . $paymentId);
+                
+                $printFormat = $_POST['print_format'] ?? 'half_a4';
+                if ($printFormat === 'half_a4') {
+                    header("Location: " . BASE_PATH . "/fees/receipt-half-a4.php?id=" . $paymentId . "&autoprint=1");
+                } elseif ($printFormat === 'pos') {
+                    header("Location: " . BASE_PATH . "/fees/receipt-pos.php?id=" . $paymentId . "&autoprint=1");
+                } else {
+                    header("Location: " . BASE_PATH . "/fees/receipt.php?id=" . $paymentId . "&autoprint=1");
+                }
                 exit;
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
@@ -121,7 +142,10 @@ require_once __DIR__ . '/../includes/header.php';
         </nav>
         <h3 class="fw-bold text-dark mb-0">Fee Collection Counter</h3>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
+        <a href="<?= BASE_PATH ?>/fees/payments.php" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm">
+            <i class="fas fa-print me-1"></i> Print Fee Slips (Half A4 & POS)
+        </a>
         <a href="<?= BASE_PATH ?>/fees/payments.php" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
             <i class="fas fa-history me-1"></i> Payment Records
         </a>
@@ -179,6 +203,18 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <div class="text-start bg-light p-3 rounded-3 small border mb-3">
                     <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted">Student Type:</span>
+                        <span class="badge bg-secondary-subtle text-dark border"><?= e($selectedStudent['student_type'] ?? 'Coeducation') ?></span>
+                    </div>
+                    <?php if (!empty($selectedStudent['scholarship_title'])): ?>
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted">Scholarship:</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                            <?= e($selectedStudent['scholarship_category']) ?> (<?= number_format($selectedStudent['scholarship_pct'], 0) ?>%)
+                        </span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="d-flex justify-content-between py-1">
                         <span class="text-muted">Class & Section:</span>
                         <strong><?= e($selectedStudent['class_name'] . ' - ' . $selectedStudent['section_name']) ?></strong>
                     </div>
@@ -200,6 +236,36 @@ require_once __DIR__ . '/../includes/header.php';
                     <div class="small fw-semibold"><?= $previousBalance > 0 ? 'Total Unpaid Arrears' : 'No Overdue Dues' ?></div>
                     <h4 class="fw-bold mb-0"><?= formatCurrency($previousBalance) ?></h4>
                 </div>
+
+                <?php if (!empty($studentPayments)): ?>
+                <div class="mt-3 pt-3 border-top text-start">
+                    <div class="fw-bold small text-dark mb-2"><i class="fas fa-print me-1 text-primary"></i> Previous Slips for this Student:</div>
+                    <div class="list-group list-group-flush small">
+                        <?php foreach ($studentPayments as $sp): ?>
+                            <div class="list-group-item px-0 py-2 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold text-primary"><?= e($sp['receipt_no']) ?></span>
+                                    <span class="fw-bold text-success"><?= formatCurrency($sp['paid_amount']) ?></span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted" style="font-size: 0.72rem;"><?= formatDate($sp['payment_date']) ?></span>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $sp['id'] ?>" class="btn btn-xs btn-success px-2 py-0" title="Print Half A4 Dual Slip">
+                                            <i class="fas fa-copy me-1"></i> Half A4
+                                        </a>
+                                        <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $sp['id'] ?>" class="btn btn-xs btn-dark px-2 py-0" title="Print POS 80mm Slip">
+                                            <i class="fas fa-receipt me-1"></i> POS
+                                        </a>
+                                        <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $sp['id'] ?>" class="btn btn-xs btn-outline-primary px-2 py-0" title="Full A4">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -227,33 +293,53 @@ require_once __DIR__ . '/../includes/header.php';
                             <input type="date" name="payment_date" class="form-control" value="<?= date('Y-m-d') ?>" required>
                         </div>
 
-                        <!-- Amounts Grid -->
+                        <!-- Scholarship & Concession Selector -->
+                        <div class="col-md-7">
+                            <label class="form-label small fw-semibold text-success">
+                                <i class="fas fa-award me-1"></i> Apply Scholarship / Concession (Need-Based, Orphan, Siblings, Merit)
+                            </label>
+                            <select name="scholarship_id" id="scholarshipSelect" class="form-select border-success">
+                                <option value="" data-pct="0" data-title="Standard">-- None / Standard Full Fee (0% Concession) --</option>
+                                <?php foreach ($scholarships as $sc): ?>
+                                    <option value="<?= $sc['id'] ?>" data-pct="<?= $sc['discount_percentage'] ?>" data-title="<?= e($sc['title']) ?>" <?= (isset($selectedStudent['scholarship_id']) && $selectedStudent['scholarship_id'] == $sc['id']) ? 'selected' : '' ?>>
+                                        <?= e($sc['category']) ?>: <?= e($sc['title']) ?> (<?= number_format($sc['discount_percentage'], 0) ?>% Waiver)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div id="concessionBadge" class="badge bg-success-subtle text-success border border-success-subtle mt-1 px-2 py-1" style="display: none;"></div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-semibold">Concession / Discount Reason</label>
+                            <input type="text" name="concession_type" id="concessionType" class="form-control" placeholder="e.g. Orphan Waiver / Siblings Concession" value="<?= !empty($selectedStudent['scholarship_title']) ? e($selectedStudent['scholarship_title']) : '' ?>">
+                        </div>
+
+                        <!-- Amounts Grid in PKR -->
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Base Fee Amount ($) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" name="fee_amount" id="feeAmount" class="form-control fw-bold" value="<?= !empty($unpaidFees) ? $unpaidFees[0]['balance'] : 250.00 ?>" required>
+                            <label class="form-label small fw-semibold">Base Fee Amount (PKR) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" name="fee_amount" id="feeAmount" class="form-control fw-bold" value="<?= !empty($unpaidFees) ? $unpaidFees[0]['balance'] : 2500.00 ?>" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Discount Concession ($)</label>
+                            <label class="form-label small fw-semibold">Discount Concession (PKR)</label>
                             <input type="number" step="0.01" name="fee_discount" id="feeDiscount" class="form-control" value="0.00">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Late Fine ($)</label>
+                            <label class="form-label small fw-semibold">Late Fine (PKR)</label>
                             <input type="number" step="0.01" name="fee_fine" id="feeFine" class="form-control" value="0.00">
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold text-primary">Net Total Payable ($)</label>
-                            <input type="number" step="0.01" name="fee_total" id="feeTotal" class="form-control bg-light fw-bold text-primary fs-5" value="<?= !empty($unpaidFees) ? $unpaidFees[0]['balance'] : 250.00 ?>" readonly>
+                            <label class="form-label small fw-semibold text-primary">Net Total Payable (PKR)</label>
+                            <input type="number" step="0.01" name="fee_total" id="feeTotal" class="form-control bg-light fw-bold text-primary fs-5" value="<?= !empty($unpaidFees) ? $unpaidFees[0]['balance'] : 2500.00 ?>" readonly>
                         </div>
                         <div class="col-md-4">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label small fw-semibold text-success mb-0">Amount Paying ($) <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-semibold text-success mb-0">Amount Paying (PKR) <span class="text-danger">*</span></label>
                                 <a href="#" id="payFullBtn" class="small text-decoration-none">Pay Full</a>
                             </div>
-                            <input type="number" step="0.01" name="fee_paid" id="feePaid" class="form-control border-success fw-bold text-success fs-5" value="<?= !empty($unpaidFees) ? $unpaidFees[0]['balance'] : 250.00 ?>" required>
+                            <input type="number" step="0.01" name="fee_paid" id="feePaid" class="form-control border-success fw-bold text-success fs-5" value="<?= !empty($unpaidFees) ? $unpaidFees[0]['balance'] : 2500.00 ?>" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold text-danger">Remaining Balance ($)</label>
+                            <label class="form-label small fw-semibold text-danger">Remaining Balance (PKR)</label>
                             <input type="number" step="0.01" name="fee_balance" id="feeBalance" class="form-control bg-light fw-bold text-danger fs-5" value="0.00" readonly>
                         </div>
 
@@ -279,9 +365,16 @@ require_once __DIR__ . '/../includes/header.php';
                         </div>
                     </div>
 
-                    <div class="text-end mt-4 pt-3 border-top">
-                        <button type="submit" class="btn btn-success px-5 py-2 rounded-pill fw-bold shadow">
-                            <i class="fas fa-check-circle me-2"></i> Receive Payment & Generate Receipt
+                    <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+                        <span class="text-muted small me-2"><i class="fas fa-print me-1"></i> Choose Print Format upon Collection:</span>
+                        <button type="submit" name="print_format" value="half_a4" class="btn btn-success px-4 py-2 rounded-pill fw-bold shadow-sm">
+                            <i class="fas fa-copy me-2"></i> Receive & Print Half A4 Dual Slip
+                        </button>
+                        <button type="submit" name="print_format" value="pos" class="btn btn-dark px-4 py-2 rounded-pill fw-bold shadow-sm">
+                            <i class="fas fa-receipt me-2"></i> Receive & Print POS Thermal Slip
+                        </button>
+                        <button type="submit" name="print_format" value="a4" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm">
+                            <i class="fas fa-file-invoice me-2"></i> Receive & Print Full A4
                         </button>
                     </div>
                 </div>
@@ -320,7 +413,7 @@ if (searchInput) {
                                         <div class="text-muted small">${st.class_name || ''} - ${st.section_name || ''} &bull; Adm: <code>${st.admission_no}</code></div>
                                     </div>
                                     <span class="badge ${st.fee_balance > 0 ? 'bg-danger' : 'bg-success'} rounded-pill">
-                                        $${parseFloat(st.fee_balance).toFixed(2)} Due
+                                        PKR ${parseFloat(st.fee_balance).toFixed(2)} Due
                                     </span>
                                 </a>
                             `;

@@ -148,7 +148,71 @@ foreach ($sortedTotals as $sId => $tot) {
     $studentStats[$sId]['rank'] = $currentRank++;
 }
 
-$schoolName = getSetting('school_name', 'EduManage International Academy');
+// Handle Excel Export for Tabulation Sheet
+if (isset($_GET['export']) && $_GET['export'] === 'excel') {
+    $className = $selectedClass['class_name'] ?? 'Class';
+    $examTitle = $selectedExam['title'] ?? 'Exam';
+    $cleanFilename = "Tabulation_" . preg_replace('/[^a-zA-Z0-9_-]/', '_', $className . "_" . $examTitle) . "_" . date('Ymd') . ".csv";
+    
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $cleanFilename . '"');
+    $out = fopen('php://output', 'w');
+    fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+    
+    fputcsv($out, ['GENERATION MODEL SCHOOL - MASTER EXAMINATION TABULATION SHEET']);
+    fputcsv($out, ['Examination', $examTitle]);
+    fputcsv($out, ['Class', $className]);
+    fputcsv($out, ['Section', $sectionId ? ($sections[0]['section_name'] ?? 'All') : 'All Sections']);
+    fputcsv($out, ['Total Students', count($students)]);
+    fputcsv($out, ['Export Date', date('Y-m-d H:i:s')]);
+    fputcsv($out, []); // empty line
+    
+    // Headers
+    $headers = ['Rank', 'Roll No', 'Adm No', 'Student Name'];
+    foreach ($subjects as $sub) {
+        $headers[] = $sub['subject_name'] . ' (' . ($sub['max_marks'] ?: 100) . ')';
+    }
+    $headers[] = 'Grand Total';
+    $headers[] = 'Max Marks';
+    $headers[] = 'Percentage (%)';
+    $headers[] = 'Grade';
+    $headers[] = 'Status';
+    fputcsv($out, $headers);
+    
+    // Rows sorted by rank
+    $rankedStudents = $students;
+    usort($rankedStudents, function($a, $b) use ($studentStats) {
+        return ($studentStats[$a['id']]['rank'] ?? 999) <=> ($studentStats[$b['id']]['rank'] ?? 999);
+    });
+    
+    foreach ($rankedStudents as $stu) {
+        $st = $studentStats[$stu['id']];
+        $row = [
+            $st['rank'],
+            $stu['roll_no'] ?: '-',
+            $stu['admission_no'],
+            $stu['first_name'] . ' ' . $stu['last_name']
+        ];
+        
+        foreach ($subjects as $sub) {
+            $m = $marksMap[$stu['id']][$sub['exam_subject_id']] ?? null;
+            $row[] = $m ? $m['marks_obtained'] : '-';
+        }
+        
+        $row[] = $st['total'];
+        $row[] = $totalMaxMarks;
+        $row[] = $st['percentage'] . '%';
+        $row[] = $st['grade'];
+        $row[] = $st['hasFailed'] ? 'FAIL' : 'PASS';
+        
+        fputcsv($out, $row);
+    }
+    
+    fclose($out);
+    exit;
+}
+
+$schoolName = getSetting('school_name', 'Generation Model School');
 $pageTitle = "Examination Tabulation Sheet";
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -165,7 +229,10 @@ require_once __DIR__ . '/../includes/header.php';
         <h3 class="fw-bold text-dark mb-0"><i class="fas fa-table text-primary me-2"></i> Master Tabulation Sheet</h3>
         <p class="text-muted small mb-0">Consolidated class marksheet across all subjects with rank and GPA</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
+        <a href="?exam_id=<?= $examId ?>&class_id=<?= $classId ?>&section_id=<?= $sectionId ?>&export=excel" class="btn btn-success rounded-pill px-3 shadow-sm">
+            <i class="fas fa-file-excel me-1"></i> Download Excel
+        </a>
         <button type="button" onclick="window.print()" class="btn btn-primary rounded-pill px-4 shadow-sm">
             <i class="fas fa-print me-2"></i> Print Tabulation
         </button>

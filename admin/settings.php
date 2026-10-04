@@ -11,8 +11,34 @@ requirePermission('settings_manage');
 
 $allSessions = getAllSessions();
 
+// Handle Add Academic Session from Settings
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_session') {
+    $sessName = trim($_POST['session_name'] ?? '');
+    $startDate = $_POST['start_date'] ?? '';
+    $endDate = $_POST['end_date'] ?? '';
+    $makeActive = isset($_POST['make_active']) ? 1 : 0;
+
+    if (!empty($sessName) && !empty($startDate) && !empty($endDate)) {
+        if ($makeActive) {
+            $pdo->query("UPDATE academic_sessions SET is_current = 0");
+        }
+        $stmt = $pdo->prepare("INSERT INTO academic_sessions (session_name, start_date, end_date, is_current, status) VALUES (?, ?, ?, ?, 'active')");
+        $stmt->execute([$sessName, $startDate, $endDate, $makeActive]);
+        $newSessId = (int)$pdo->lastInsertId();
+        if ($makeActive) {
+            $pdo->query("UPDATE school_settings SET key_value = '{$newSessId}' WHERE key_name = 'active_session_id'");
+        }
+        logAudit('ADD_SESSION', 'Settings', $newSessId, "Created academic session {$sessName}");
+        setFlashMessage('success', "New Academic Session '{$sessName}' created successfully!");
+    } else {
+        setFlashMessage('error', "Please fill in all session details.");
+    }
+    header("Location: " . BASE_PATH . "/admin/settings.php");
+    exit;
+}
+
 // Save Settings
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (!isset($_POST['action']) || $_POST['action'] !== 'add_session')) {
     $csrfToken = $_POST['csrf_token'] ?? '';
     if (!verifyCsrfToken($csrfToken)) {
         setFlashMessage('error', 'Session validation failed.');
@@ -20,7 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allowedKeys = [
             'school_name', 'school_motto', 'registration_no', 'principal_name',
             'phone', 'email', 'website', 'address', 'city', 'province', 'country',
-            'currency', 'currency_symbol', 'active_session_id', 'receipt_footer_note'
+            'currency', 'currency_symbol', 'active_session_id', 'receipt_footer_note',
+            'default_fee_exam', 'default_fee_computer_lab', 'default_fee_sports_extracurricular',
+            'default_fee_tuition', 'default_fee_admission'
         ];
 
         $stmt = $pdo->prepare("INSERT INTO school_settings (key_name, key_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE key_value = VALUES(key_value)");
@@ -30,8 +58,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        logAudit('UPDATE_SETTINGS', 'Settings', null, 'Updated school master configuration');
-        setFlashMessage('success', 'School settings saved and applied system-wide!');
+        // If requested, synchronize standard rates with class fee structures
+        if (isset($_POST['sync_fee_structures']) && $_POST['sync_fee_structures'] == '1') {
+            $curSessId = (int)($_POST['active_session_id'] ?? 1);
+            $classes = $pdo->query("SELECT id FROM classes")->fetchAll();
+            $rates = [
+                3 => floatval($_POST['default_fee_exam'] ?? 1500),                  // Examination Fee
+                4 => floatval($_POST['default_fee_computer_lab'] ?? 1000),          // Computer & Lab Fee
+                7 => floatval($_POST['default_fee_sports_extracurricular'] ?? 800), // Sports & Extracurricular Fee
+                1 => floatval($_POST['default_fee_tuition'] ?? 3500)                // Tuition Fee
+            ];
+
+            foreach ($classes as $c) {
+                foreach ($rates as $typeId => $amt) {
+                    $chk = $pdo->prepare("SELECT id FROM fee_structures WHERE session_id = ? AND class_id = ? AND fee_type_id = ?");
+                    $chk->execute([$curSessId, $c['id'], $typeId]);
+                    if ($chk->fetch()) {
+                        $upd = $pdo->prepare("UPDATE fee_structures SET amount = ? WHERE session_id = ? AND class_id = ? AND fee_type_id = ?");
+                        $upd->execute([$amt, $curSessId, $c['id'], $typeId]);
+                    } else {
+                        $ins = $pdo->prepare("INSERT INTO fee_structures (session_id, class_id, fee_type_id, amount) VALUES (?, ?, ?, ?)");
+                        $ins->execute([$curSessId, $c['id'], $typeId, $amt]);
+                    }
+                }
+            }
+        }
+
+        logAudit('UPDATE_SETTINGS', 'Settings', null, 'Updated school master configuration & fee structure');
+        setFlashMessage('success', 'School settings & institutional fee structure saved and applied system-wide!');
         header("Location: " . BASE_PATH . "/admin/settings.php");
         exit;
     }
@@ -97,11 +151,16 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="text" name="principal_name" class="form-control" value="<?= e($settings['principal_name'] ?? '') ?>">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label small fw-semibold">Active Academic Session</label>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-semibold mb-0">Active Academic Session</label>
+                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#newSessionModal">
+                            <i class="fas fa-plus me-1"></i> + New Session
+                        </button>
+                    </div>
                     <select name="active_session_id" class="form-select">
                         <?php foreach ($allSessions as $s): ?>
                             <option value="<?= $s['id'] ?>" <?= ($settings['active_session_id'] ?? 1) == $s['id'] ? 'selected' : '' ?>>
-                                <?= e($s['session_name']) ?>
+                                <?= e($s['session_name']) ?> <?= ($s['is_current'] == 1) ? '(Current)' : '' ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

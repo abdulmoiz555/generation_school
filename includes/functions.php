@@ -34,12 +34,14 @@ function getStudent($studentId) {
                c.class_name, 
                sec.section_name,
                p.father_name, p.mother_name, p.guardian_name, p.phone as parent_phone, p.email as parent_email,
-               sess.session_name
+               sess.session_name,
+               sc.title as scholarship_title, sc.discount_percentage as scholarship_pct, sc.category as scholarship_category
         FROM students s
         LEFT JOIN classes c ON s.class_id = c.id
         LEFT JOIN sections sec ON s.section_id = sec.id
         LEFT JOIN parents p ON s.parent_id = p.id
         LEFT JOIN academic_sessions sess ON s.session_id = sess.id
+        LEFT JOIN scholarships sc ON s.scholarship_id = sc.id
         WHERE s.id = ?
         LIMIT 1
     ");

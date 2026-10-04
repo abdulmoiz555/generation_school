@@ -335,17 +335,15 @@ require_once __DIR__ . '/../includes/header.php';
                                                 <td class="fw-bold text-success"><?= formatCurrency($p['paid_amount']) ?></td>
                                                 <td><span class="badge bg-light text-dark border"><?= e($p['payment_method']) ?></span></td>
                                                 <td class="text-end text-nowrap">
-                                                    <div class="btn-group btn-group-sm">
-                                                        <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $p['id'] ?>" class="btn btn-xs btn-outline-primary" title="Full A4">
-                                                            <i class="fas fa-print me-1"></i> A4
-                                                        </a>
-                                                        <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $p['id'] ?>" class="btn btn-xs btn-outline-primary" title="Half A4 Dual">
-                                                            <i class="fas fa-copy me-1"></i> Half
-                                                        </a>
-                                                        <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $p['id'] ?>" class="btn btn-xs btn-outline-dark" title="POS Thermal">
-                                                            <i class="fas fa-receipt me-1"></i> POS
-                                                        </a>
-                                                    </div>
+                                                    <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-success rounded-pill px-2 py-0 shadow-sm me-1" title="Print Half A4 Dual Slip (School + Parent)">
+                                                        <i class="fas fa-copy me-1"></i> Half A4
+                                                    </a>
+                                                    <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-dark rounded-pill px-2 py-0 shadow-sm me-1" title="Print 80mm POS Thermal Receipt">
+                                                        <i class="fas fa-receipt me-1"></i> POS
+                                                    </a>
+                                                    <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" title="Full A4 Receipt">
+                                                        <i class="fas fa-print me-1"></i> A4
+                                                    </a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -356,9 +354,19 @@ require_once __DIR__ . '/../includes/header.php';
 
                         <!-- 4. Examination Results Tab -->
                         <div class="tab-pane fade" id="results" role="tabpanel">
-                            <h6 class="fw-bold text-primary mb-3">Academic Performance & Grades</h6>
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                                <h6 class="fw-bold text-primary mb-0">Academic Performance & Examination Results</h6>
+                                <div class="d-flex gap-2">
+                                    <button type="button" onclick="exportStudentResultsToCSV()" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+                                        <i class="fas fa-file-excel me-1"></i> Download Results Excel
+                                    </button>
+                                    <a href="<?= BASE_PATH ?>/examinations/results.php?student_id=<?= $student['id'] ?>" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+                                        <i class="fas fa-award me-1"></i> Official Result Card
+                                    </a>
+                                </div>
+                            </div>
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
+                                <table id="studentResultsTable" class="table table-hover align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Exam Title</th>
@@ -429,5 +437,41 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+function exportStudentResultsToCSV() {
+    const table = document.getElementById('studentResultsTable');
+    if (!table) return;
+    
+    let csv = [];
+    csv.push(['"GENERATION MODEL SCHOOL - STUDENT EXAMINATION RESULTS"']);
+    csv.push(['"Student Name"', '"<?= addslashes(($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? '')) ?>"']);
+    csv.push(['"Admission No"', '"<?= addslashes($student['admission_no'] ?? '') ?>"']);
+    csv.push(['"Class & Section"', '"<?= addslashes(($student['class_name'] ?? '') . ' - ' . ($student['section_name'] ?? '')) ?>"']);
+    csv.push([]);
+    
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        const cols = row.querySelectorAll('th, td');
+        if (cols.length > 0) {
+            let rowData = [];
+            cols.forEach(col => {
+                let text = col.innerText.replace(/\r?\n|\r/g, ' ').trim();
+                rowData.push('"' + text.replace(/"/g, '""') + '"');
+            });
+            csv.push(rowData.join(','));
+        }
+    });
+    
+    const csvContent = "\uFEFF" + csv.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', 'Exam_Results_<?= preg_replace('/[^a-zA-Z0-9_-]/', '_', $student['admission_no'] ?? 'student') ?>.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

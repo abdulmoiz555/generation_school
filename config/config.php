@@ -26,10 +26,49 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Error reporting
+// Error reporting & safe logging
 error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
+ini_set('error_log', '/tmp/php_errors.log');
+
+// Global Exception Handler to catch any fatal error and prevent raw 500 errors
+set_exception_handler(function($e) {
+    error_log("Unhandled Exception: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine());
+    if (!headers_sent()) {
+        http_response_code(200); // Return friendly page instead of breaking connection
+    }
+    $schoolName = 'Generation Model School';
+    $basePath = defined('BASE_PATH') ? BASE_PATH : '';
+    echo '<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Notice | ' . htmlspecialchars($schoolName) . '</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    </head>
+    <body class="bg-light d-flex align-items-center justify-content-center min-vh-100 p-3">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center" style="max-width: 520px;">
+            <div class="mb-3 text-warning">
+                <i class="fas fa-exclamation-triangle fa-3x"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-2">Operation Notice</h4>
+            <p class="text-muted small mb-4">The requested action could not be completed smoothly. The system has safely logged this event.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="javascript:history.back()" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="fas fa-arrow-left me-1"></i> Go Back
+                </a>
+                <a href="' . $basePath . '/dashboard.php" class="btn btn-primary rounded-pill px-4">
+                    <i class="fas fa-home me-1"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </body>
+    </html>';
+    exit;
+});
 
 // Include Database
 require_once __DIR__ . '/database.php';

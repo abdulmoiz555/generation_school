@@ -151,19 +151,22 @@ $schoolAddress = getSetting('address', '742 Evergreen Terrace, Springfield');
 <!-- Navigation Toolbar (Hidden in Print) -->
 <div class="container mb-3 no-print" style="max-width: 500px;">
     <div class="d-flex flex-wrap justify-content-between align-items-center bg-white p-2 px-3 rounded-3 shadow-sm border gap-2">
-        <span class="badge bg-dark"><i class="fas fa-print me-1"></i> POS 80mm Thermal</span>
-        <div class="d-flex gap-1">
-            <button onclick="window.print()" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+        <span class="badge bg-dark fs-7"><i class="fas fa-print me-1"></i> POS 80mm Thermal</span>
+        <div class="d-flex flex-wrap gap-1">
+            <button type="button" onclick="triggerPrint()" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm fw-bold">
                 <i class="fas fa-print me-1"></i> Print POS
             </button>
-            <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $payment['id'] ?>" class="btn btn-outline-primary btn-sm rounded-pill px-2">
-                Half A4
+            <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $payment['id'] ?>&autoprint=1" target="_blank" class="btn btn-primary btn-sm rounded-pill px-2 fw-semibold">
+                <i class="fas fa-external-link-alt"></i> New Tab
             </a>
-            <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $payment['id'] ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-2">
-                A4 Receipt
+            <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $payment['id'] ?>" class="btn btn-success btn-sm rounded-pill px-2">
+                <i class="fas fa-copy me-1"></i> Half A4
+            </a>
+            <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $payment['id'] ?>" class="btn btn-outline-primary btn-sm rounded-pill px-2">
+                Full A4
             </a>
             <a href="<?= BASE_PATH ?>/fees/payments.php" class="btn btn-light btn-sm rounded-pill px-2 border">
-                Back
+                All Slips
             </a>
         </div>
     </div>
@@ -314,6 +317,37 @@ $schoolAddress = getSetting('address', '742 Evergreen Terrace, Springfield');
     </div>
 
 </div>
+
+<script>
+function triggerPrint() {
+    window.focus();
+    try {
+        window.print();
+    } catch (e) {
+        console.warn('POS print error:', e);
+        try {
+            if (window.parent && window.parent !== window && window.parent.print) {
+                window.parent.focus();
+                window.parent.print();
+            }
+        } catch(ex) {}
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        triggerPrint();
+    }
+});
+
+window.addEventListener('load', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('autoprint') === '1' || params.get('print') === '1') {
+        setTimeout(triggerPrint, 400);
+    }
+});
+</script>
 
 </body>
 </html>

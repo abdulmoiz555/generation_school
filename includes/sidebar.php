@@ -108,8 +108,8 @@ function isNavActive($pathPart) {
         </li>
         <li class="sidebar-item">
             <a href="<?= BASE_PATH ?>/fees/payments.php" class="sidebar-link <?= isNavActive('fees/payments.php') ? 'active' : '' ?>">
-                <i class="fas fa-receipt"></i>
-                <span>Fee Receipts & Slips</span>
+                <i class="fas fa-print text-warning"></i>
+                <span class="fw-bold">Print Fee Slips (Half A4/POS)</span>
             </a>
         </li>
         <li class="sidebar-item">
@@ -142,26 +142,26 @@ function isNavActive($pathPart) {
         </li>
         <li class="sidebar-item">
             <a href="<?= BASE_PATH ?>/examinations/marks.php" class="sidebar-link <?= isNavActive('examinations/marks.php') ? 'active' : '' ?>">
-                <i class="fas fa-pen-nib"></i>
+                <i class="fas fa-pen-alt"></i>
                 <span>Marks Entry</span>
-            </a>
-        </li>
-        <li class="sidebar-item">
-            <a href="<?= BASE_PATH ?>/examinations/results.php" class="sidebar-link <?= isNavActive('examinations/results.php') ? 'active' : '' ?>">
-                <i class="fas fa-award"></i>
-                <span>Result Cards</span>
             </a>
         </li>
         <li class="sidebar-item">
             <a href="<?= BASE_PATH ?>/examinations/tabulation.php" class="sidebar-link <?= isNavActive('examinations/tabulation.php') ? 'active' : '' ?>">
                 <i class="fas fa-table"></i>
-                <span>Tabulation Sheet</span>
+                <span>Tabulation Sheet (Excel)</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="<?= BASE_PATH ?>/examinations/results.php" class="sidebar-link <?= isNavActive('examinations/results.php') ? 'active' : '' ?>">
+                <i class="fas fa-file-excel text-success"></i>
+                <span>Result Cards (Excel)</span>
             </a>
         </li>
         <li class="sidebar-item">
             <a href="<?= BASE_PATH ?>/examinations/grades.php" class="sidebar-link <?= isNavActive('examinations/grades.php') ? 'active' : '' ?>">
-                <i class="fas fa-sliders-h"></i>
-                <span>Grading System</span>
+                <i class="fas fa-medal"></i>
+                <span>Grading Rules</span>
             </a>
         </li>
         <?php endif; ?>

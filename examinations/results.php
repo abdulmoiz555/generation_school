@@ -52,11 +52,55 @@ if ($student) {
     }
 }
 
+// Handle Excel/CSV Export
+if (isset($_GET['export']) && $_GET['export'] === 'excel') {
+    $filename = "Result_Card_" . preg_replace('/[^a-zA-Z0-9_-]/', '_', ($student['admission_no'] ?? 'student')) . "_" . date('Ymd') . ".csv";
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    $out = fopen('php://output', 'w');
+    fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+    
+    fputcsv($out, ['GENERATION MODEL SCHOOL - OFFICIAL STUDENT RESULT CARD']);
+    fputcsv($out, ['Examination', $exam['title'] ?? 'Examination']);
+    fputcsv($out, ['Student Name', ($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? '')]);
+    fputcsv($out, ['Admission No', $student['admission_no'] ?? '']);
+    fputcsv($out, ['Roll No', $student['roll_no'] ?? '']);
+    fputcsv($out, ['Class & Section', ($student['class_name'] ?? '') . ' - ' . ($student['section_name'] ?? '')]);
+    fputcsv($out, ['Father Name', $student['father_name'] ?? '']);
+    fputcsv($out, []);
+    
+    fputcsv($out, ['Sr #', 'Subject Code', 'Subject Name', 'Subject Type', 'Maximum Marks', 'Marks Obtained', 'Percentage (%)', 'Grade', 'Remarks']);
+    $sr = 1;
+    foreach ($results as $res) {
+        $pct = ($res['max_marks'] > 0) ? round(($res['marks_obtained'] / $res['max_marks']) * 100, 1) : 0;
+        fputcsv($out, [
+            $sr++,
+            $res['subject_code'],
+            $res['subject_name'],
+            $res['subject_type'],
+            $res['max_marks'],
+            $res['marks_obtained'],
+            $pct . '%',
+            $res['grade_name'],
+            $res['remarks'] ?: ($res['marks_obtained'] >= 50 ? 'Pass' : 'Fail')
+        ]);
+    }
+    
+    fputcsv($out, []);
+    fputcsv($out, ['GRAND TOTAL', '', '', '', $totalMaxMarks, $totalObtainedMarks, $overallPercentage . '%', $overallGrade, $overallPercentage >= 40 ? 'PASSED' : 'NEEDS IMPROVEMENT']);
+    fputcsv($out, ['Overall Attendance Rate', $attPct . '%']);
+    fputcsv($out, ['Result Decision', $overallPercentage >= 40 ? 'PASSED / PROMOTED' : 'FAILED / CONDITIONAL']);
+    fputcsv($out, ['Export Date', date('Y-m-d H:i:s')]);
+    
+    fclose($out);
+    exit;
+}
+
 $pageTitle = "Result Card - " . ($student['first_name'] ?? 'Student');
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 no-print">
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1">
@@ -67,10 +111,16 @@ require_once __DIR__ . '/../includes/header.php';
         </nav>
         <h3 class="fw-bold text-dark mb-0">Official Student Result Card</h3>
     </div>
-    <div class="d-flex gap-2">
-        <button onclick="window.print()" class="btn btn-primary rounded-pill px-4 shadow-sm">
-            <i class="fas fa-print me-2"></i> Print Official Result Card
+    <div class="d-flex flex-wrap gap-2">
+        <a href="?exam_id=<?= $examId ?>&student_id=<?= $studentId ?>&export=excel" class="btn btn-success rounded-pill px-3 shadow-sm">
+            <i class="fas fa-file-excel me-1"></i> Download Excel
+        </a>
+        <button onclick="window.print()" class="btn btn-primary rounded-pill px-3 shadow-sm">
+            <i class="fas fa-print me-1"></i> Print Result Card
         </button>
+        <a href="<?= BASE_PATH ?>/examinations/tabulation.php?exam_id=<?= $examId ?>&class_id=<?= $student['class_id'] ?? 1 ?>" class="btn btn-outline-dark rounded-pill px-3">
+            <i class="fas fa-table me-1"></i> Class Tabulation Sheet
+        </a>
         <a href="<?= BASE_PATH ?>/examinations/marks.php" class="btn btn-outline-secondary rounded-pill px-3">
             Marks Entry
         </a>

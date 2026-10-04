@@ -165,7 +165,7 @@ app.use((req, res) => {
         <body>
           <div class="box">
             <div class="spinner"></div>
-            <h3 style="margin-top:0;">Starting Springfield Academy</h3>
+            <h3 style="margin-top:0;">Starting Generation Model School</h3>
             <p style="color:#94a3b8;font-size:0.9rem;">Initializing database and services... please wait a moment.</p>
           </div>
         </body>

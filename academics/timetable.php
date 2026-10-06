@@ -134,20 +134,38 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered align-middle mb-0 text-center">
+                <table class="table table-bordered align-middle mb-0 text-center" style="font-size: 0.85rem;">
                     <thead class="table-light">
                         <tr>
-                            <th width="120">Day</th>
-                            <?php for ($p = 1; $p <= 6; $p++): ?>
-                                <th>Period <?= $p ?></th>
-                            <?php endfor; ?>
+                            <th width="100">Day</th>
+                            <th>Period 1<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">08:30-09:15</span></th>
+                            <th>Period 2<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">09:15-10:00</span></th>
+                            <th>Period 3<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">10:00-10:45</span></th>
+                            <th>Period 4<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">10:45-11:30</span></th>
+                            <th class="bg-warning-subtle text-warning-emphasis fw-bold" style="min-width: 90px;">
+                                <i class="fas fa-coffee me-1"></i> BREAK<br><span class="fw-normal" style="font-size: 0.7rem;">11:30-12:00</span>
+                            </th>
+                            <th>Period 5<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">12:00-12:45</span></th>
+                            <th>Period 6<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">12:45-01:30</span></th>
+                            <th>Period 7<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">01:30-02:15</span></th>
+                            <th>Period 8<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">02:15-02:55</span></th>
+                            <th>Period 9<br><span class="text-muted fw-normal" style="font-size: 0.7rem;">02:55-03:35</span></th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($days as $d): ?>
                             <tr>
                                 <th class="table-light fw-bold text-start ps-3"><?= $d ?></th>
-                                <?php for ($p = 1; $p <= 6; $p++): 
+                                <?php for ($p = 1; $p <= 9; $p++): 
+                                    // Insert Break Column after Period 4
+                                    if ($p === 5): ?>
+                                        <td class="bg-warning-subtle text-center align-middle p-1" style="width: 90px; background-color: #fef3c7 !important;">
+                                            <div class="fw-bold text-warning-emphasis small text-uppercase" style="letter-spacing: 0.5px; font-size: 0.72rem;">
+                                                <i class="fas fa-utensils d-block mb-1"></i> Recess / Break
+                                            </div>
+                                        </td>
+                                    <?php endif; 
+
                                     // Find slot for this period
                                     $matchedSlot = null;
                                     foreach ($scheduleByDay[$d] as $s) {
@@ -157,12 +175,12 @@ require_once __DIR__ . '/../includes/header.php';
                                         }
                                     }
                                 ?>
-                                    <td class="p-2" style="height: 80px; min-width: 140px;">
+                                    <td class="p-1" style="height: 75px; min-width: 110px;">
                                         <?php if ($matchedSlot): ?>
-                                            <div class="p-2 rounded bg-light border">
-                                                <div class="fw-bold text-primary small"><?= e($matchedSlot['subject_name']) ?></div>
-                                                <div class="text-muted" style="font-size: 0.72rem;"><?= e($matchedSlot['teacher_name'] ?: 'Teacher') ?></div>
-                                                <div class="badge bg-secondary-subtle text-secondary border mt-1" style="font-size: 0.65rem;">
+                                            <div class="p-2 rounded bg-light border h-100 d-flex flex-column justify-content-center">
+                                                <div class="fw-bold text-primary small text-truncate" title="<?= e($matchedSlot['subject_name']) ?>"><?= e($matchedSlot['subject_name']) ?></div>
+                                                <div class="text-muted text-truncate" style="font-size: 0.7rem;"><?= e($matchedSlot['teacher_name'] ?: 'Faculty') ?></div>
+                                                <div class="badge bg-secondary-subtle text-secondary border mt-1" style="font-size: 0.62rem;">
                                                     <?= e($matchedSlot['room_no'] ?: 'Room TBD') ?>
                                                 </div>
                                             </div>
@@ -206,7 +224,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Period Number <span class="text-danger">*</span></label>
                             <select name="period_number" class="form-select" required>
-                                <?php for ($i = 1; $i <= 6; $i++): ?>
+                                <?php for ($i = 1; $i <= 9; $i++): ?>
                                     <option value="<?= $i ?>">Period <?= $i ?></option>
                                 <?php endfor; ?>
                             </select>

@@ -6,7 +6,7 @@
 
 // Host and credentials - defaults configured for standard XAMPP environment
 $host = getenv('DB_HOST') ?: '127.0.0.1';
-$dbname = getenv('DB_NAME') ?: 'school_management';
+$dbname = getenv('DB_NAME') ?: 'generation_school';
 $username = getenv('DB_USER') ?: 'root';
 $password = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
 $port = getenv('DB_PORT') ?: '3306';
@@ -32,6 +32,6 @@ try {
         ]);
     } catch (PDOException $ex) {
         error_log("Database Connection Error: " . $ex->getMessage());
-        die("Database connection failed. Please ensure MySQL is running in XAMPP and the database 'school_management' has been imported.");
+        die("Database connection failed. Please ensure MySQL is running and the database 'generation_school' has been imported.");
     }
 }

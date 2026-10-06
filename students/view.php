@@ -90,8 +90,11 @@ require_once __DIR__ . '/../includes/header.php';
         <button onclick="window.print()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
             <i class="fas fa-print me-1"></i> Print Profile
         </button>
-        <a href="<?= BASE_PATH ?>/students/profile.php?id=<?= $student['id'] ?>&print=idcard" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-sm">
-            <i class="fas fa-id-card me-1"></i> Student ID Card
+        <a href="<?= BASE_PATH ?>/fees/batch-challan.php?student_id=<?= $student['id'] ?>" class="btn btn-outline-warning btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fas fa-receipt me-1"></i> Fee Challan
+        </a>
+        <a href="<?= BASE_PATH ?>/examinations/report-cards.php?tab=individual&student_id=<?= $student['id'] ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fas fa-graduation-cap me-1"></i> Report Card
         </a>
         <?php if (hasPermission('fees_collect')): ?>
             <a href="<?= BASE_PATH ?>/fees/collect.php?student_id=<?= $student['id'] ?>" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">

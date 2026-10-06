@@ -248,8 +248,8 @@ require_once __DIR__ . '/../includes/header.php';
                                         <a href="<?= BASE_PATH ?>/students/view.php?id=<?= $st['id'] ?>" class="btn btn-outline-info" title="View Profile">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="<?= BASE_PATH ?>/students/profile.php?id=<?= $st['id'] ?>&print=idcard" class="btn btn-outline-secondary" title="Student ID Card">
-                                            <i class="fas fa-id-card"></i>
+                                        <a href="<?= BASE_PATH ?>/fees/batch-challan.php?student_id=<?= $st['id'] ?>" class="btn btn-outline-warning" title="Print Fee Challan">
+                                            <i class="fas fa-receipt"></i>
                                         </a>
                                         <?php if (hasPermission('student_edit')): ?>
                                             <a href="<?= BASE_PATH ?>/students/edit.php?id=<?= $st['id'] ?>" class="btn btn-outline-primary" title="Edit Student">

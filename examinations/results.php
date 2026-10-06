@@ -310,7 +310,7 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="text-center">
                         <div class="sign-line mx-auto mb-1">Principal Signature & Seal</div>
-                        <div class="text-muted" style="font-size: 0.72rem;"><?= e(getSetting('principal_name', 'Dr. Sarah Jenkins')) ?></div>
+                        <div class="text-muted" style="font-size: 0.72rem;"><?= e(getSetting('principal_name', 'Principal')) ?></div>
                     </div>
                 </div>
 

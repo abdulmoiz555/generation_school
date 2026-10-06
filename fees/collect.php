@@ -108,14 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 logAudit('COLLECT_FEE', 'Fees', $paymentId, "Collected {$paidAmount} with receipt {$receiptNo} for student {$stId}");
                 setFlashMessage('success', "Payment successfully recorded! Receipt #{$receiptNo} generated.");
                 
-                $printFormat = $_POST['print_format'] ?? 'half_a4';
-                if ($printFormat === 'half_a4') {
-                    header("Location: " . BASE_PATH . "/fees/receipt-half-a4.php?id=" . $paymentId . "&autoprint=1");
-                } elseif ($printFormat === 'pos') {
-                    header("Location: " . BASE_PATH . "/fees/receipt-pos.php?id=" . $paymentId . "&autoprint=1");
-                } else {
-                    header("Location: " . BASE_PATH . "/fees/receipt.php?id=" . $paymentId . "&autoprint=1");
-                }
+                // Always default directly to Half A4 slip format with instant print dialog
+                header("Location: " . BASE_PATH . "/fees/receipt-half-a4.php?id=" . $paymentId . "&autoprint=1");
                 exit;
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
@@ -250,14 +244,8 @@ require_once __DIR__ . '/../includes/header.php';
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="text-muted" style="font-size: 0.72rem;"><?= formatDate($sp['payment_date']) ?></span>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $sp['id'] ?>" class="btn btn-xs btn-success px-2 py-0" title="Print Half A4 Dual Slip">
-                                            <i class="fas fa-copy me-1"></i> Half A4
-                                        </a>
-                                        <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $sp['id'] ?>" class="btn btn-xs btn-dark px-2 py-0" title="Print POS 80mm Slip">
-                                            <i class="fas fa-receipt me-1"></i> POS
-                                        </a>
-                                        <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $sp['id'] ?>" class="btn btn-xs btn-outline-primary px-2 py-0" title="Full A4">
-                                            <i class="fas fa-print"></i>
+                                        <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $sp['id'] ?>&autoprint=1" class="btn btn-xs btn-success px-2 py-0" title="Print Fee Slip (Half A4)">
+                                            <i class="fas fa-print me-1"></i> Print Slip
                                         </a>
                                     </div>
                                 </div>
@@ -366,15 +354,8 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
 
                     <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
-                        <span class="text-muted small me-2"><i class="fas fa-print me-1"></i> Choose Print Format upon Collection:</span>
-                        <button type="submit" name="print_format" value="half_a4" class="btn btn-success px-4 py-2 rounded-pill fw-bold shadow-sm">
-                            <i class="fas fa-copy me-2"></i> Receive & Print Half A4 Dual Slip
-                        </button>
-                        <button type="submit" name="print_format" value="pos" class="btn btn-dark px-4 py-2 rounded-pill fw-bold shadow-sm">
-                            <i class="fas fa-receipt me-2"></i> Receive & Print POS Thermal Slip
-                        </button>
-                        <button type="submit" name="print_format" value="a4" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm">
-                            <i class="fas fa-file-invoice me-2"></i> Receive & Print Full A4
+                        <button type="submit" class="btn btn-success px-4 py-2 rounded-pill fw-bold shadow-sm">
+                            <i class="fas fa-print me-2"></i> Receive Fee & Print Slip (Half A4)
                         </button>
                     </div>
                 </div>

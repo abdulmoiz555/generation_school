@@ -82,9 +82,6 @@ require_once __DIR__ . '/../includes/header.php';
                 <a href="<?= BASE_PATH ?>/reports/students.php" class="btn btn-outline-primary rounded-pill btn-sm">
                     <i class="fas fa-arrow-right me-1"></i> Demographic Report
                 </a>
-                <a href="<?= BASE_PATH ?>/students/id-card.php" class="btn btn-light rounded-pill btn-sm text-secondary">
-                    <i class="fas fa-id-card me-1"></i> ID Card Generator
-                </a>
             </div>
         </div>
     </div>

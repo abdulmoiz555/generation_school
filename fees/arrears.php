@@ -85,8 +85,15 @@ require_once __DIR__ . '/../includes/header.php';
                 </select>
             </div>
             <div class="col-md-5">
-                <label class="form-label small fw-semibold">Billing Month Keyword</label>
-                <input type="text" name="month" class="form-control" placeholder="e.g. September or October" value="<?= e($monthFilter) ?>">
+                <label class="form-label small fw-semibold">Billing Month</label>
+                <select name="month" class="form-select">
+                    <option value="">All Months</option>
+                    <?php 
+                    $months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                    foreach ($months as $m): ?>
+                        <option value="<?= $m ?>" <?= strtolower($monthFilter) === strtolower($m) ? 'selected' : '' ?>><?= $m ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-primary w-100">Filter Arrears</button>

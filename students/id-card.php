@@ -1,18 +1,13 @@
 <?php
 /**
- * Student ID Card Generator
- * Printable ID cards with school branding, student photo, QR code placeholder, barcode, and emergency contact
+ * Student ID Card Generator (Option removed per system configuration)
  */
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/auth.php';
-require_once __DIR__ . '/../includes/permissions.php';
-require_once __DIR__ . '/../includes/functions.php';
 
-requirePermission('student_view');
+header("Location: " . BASE_PATH . "/students/index.php");
+exit;
 
-$selectedStudentId = isset($_GET['id']) ? (int)$_GET['id'] : null;
-$selectedClassId = isset($_GET['class_id']) ? (int)$_GET['class_id'] : null;
-$selectedSectionId = isset($_GET['section_id']) ? (int)$_GET['section_id'] : null;
 
 $classes = $pdo->query("SELECT * FROM classes ORDER BY numeric_level ASC")->fetchAll();
 $sections = [];

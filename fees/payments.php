@@ -100,7 +100,7 @@ require_once __DIR__ . '/../includes/header.php';
             </ol>
         </nav>
         <h3 class="fw-bold text-dark mb-0">Fee Receipts & Print Slips Center</h3>
-        <p class="text-muted small mb-0">Print fee receipts in <strong>Half A4 Dual Slip</strong>, <strong>POS Thermal (80mm)</strong>, or <strong>Standard A4</strong></p>
+        <p class="text-muted small mb-0">Official fee receipts printed on <strong>Half A4 Paper (Dual Copy: School & Parent)</strong></p>
     </div>
     <div class="d-flex flex-wrap gap-2">
         <a href="?<?= http_build_query(array_merge($_GET, ['export' => 'excel'])) ?>" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
@@ -112,22 +112,16 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<!-- Highlight Banner: Print Options Explained -->
+<!-- Highlight Banner: Print Format Explained -->
 <div class="card border-0 bg-primary-subtle shadow-sm rounded-4 p-3 mb-4 no-print border-start border-primary border-4">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
         <div>
             <div class="fw-bold text-primary fs-6 mb-1">
-                <i class="fas fa-print me-2"></i> Choose Your Printable Format for Any Receipt Below:
+                <i class="fas fa-print me-2"></i> Official Fee Slip Printing (Default Half A4 Paper):
             </div>
             <div class="d-flex flex-wrap gap-2 small text-dark mt-2">
                 <span class="badge bg-success px-3 py-2 fs-7 rounded-pill">
-                    <i class="fas fa-copy me-1"></i> <strong>Half A4 Dual Slip:</strong> Fits School & Parent copy side-by-side on 1/2 A4
-                </span>
-                <span class="badge bg-dark px-3 py-2 fs-7 rounded-pill">
-                    <i class="fas fa-receipt me-1"></i> <strong>POS 80mm Thermal:</strong> Continuous roll receipt for POS thermal printers
-                </span>
-                <span class="badge bg-primary px-3 py-2 fs-7 rounded-pill">
-                    <i class="fas fa-file-invoice me-1"></i> <strong>Full A4 Receipt:</strong> Full official institutional letterhead receipt
+                    <i class="fas fa-copy me-1"></i> <strong>Half A4 Dual Slip:</strong> Fits School Copy & Parent Copy side-by-side on half page A4
                 </span>
             </div>
         </div>
@@ -189,7 +183,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <th>Paid Amount</th>
                         <th>Method</th>
                         <th>Received By</th>
-                        <th class="text-end" style="min-width: 280px;"><i class="fas fa-print me-1"></i> Print Fee Slips (3 Formats)</th>
+                        <th class="text-end pe-4"><i class="fas fa-print me-1"></i> Print Fee Slip (Half A4)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -199,7 +193,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <?php foreach ($payments as $p): ?>
                             <tr>
                                 <td class="fw-bold text-primary">
-                                    <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $p['id'] ?>" class="text-decoration-none">
+                                    <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $p['id'] ?>&autoprint=1" class="text-decoration-none">
                                         <?= e($p['receipt_no']) ?>
                                     </a>
                                 </td>
@@ -212,18 +206,10 @@ require_once __DIR__ . '/../includes/header.php';
                                 <td class="fw-bold text-success fs-6"><?= formatCurrency($p['paid_amount']) ?></td>
                                 <td><span class="badge bg-light text-dark border"><?= e($p['payment_method']) ?></span></td>
                                 <td><span class="small text-muted"><?= e($p['receiver_name'] ?: 'Staff') ?></span></td>
-                                <td class="text-end text-nowrap">
-                                    <!-- Half A4 Dual Slip Button -->
-                                    <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-success rounded-pill px-2 py-1 shadow-sm me-1" title="Print Half A4 Dual Slip (School & Parent Copy on Half Sheet)">
-                                        <i class="fas fa-copy me-1"></i> Half A4 Slip
-                                    </a>
-                                    <!-- POS 80mm Thermal Slip Button -->
-                                    <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-dark rounded-pill px-2 py-1 shadow-sm me-1" title="Print 80mm POS Thermal Slip">
-                                        <i class="fas fa-receipt me-1"></i> POS 80mm
-                                    </a>
-                                    <!-- Full A4 Receipt Button -->
-                                    <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" title="Print Full A4 Official Receipt">
-                                        <i class="fas fa-file-invoice me-1"></i> Full A4
+                                <td class="text-end text-nowrap pe-4">
+                                    <!-- Direct Print Half A4 Slip Button -->
+                                    <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $p['id'] ?>&autoprint=1" class="btn btn-sm btn-success rounded-pill px-3 py-1 shadow-sm fw-bold" title="Print Fee Slip (Half Page A4)">
+                                        <i class="fas fa-print me-1"></i> Print Slip
                                     </a>
                                 </td>
                             </tr>

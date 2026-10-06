@@ -20,13 +20,47 @@ try {
   // ignore
 }
 
+// Self-healing package installer for fresh container environments
+function ensureSystemPackages() {
+  try {
+    execSync('which php >/dev/null 2>&1 && which mariadb >/dev/null 2>&1');
+  } catch {
+    console.log('[System] Installing PHP and MariaDB binaries...');
+    try {
+      execSync('DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" php-cli php-mysql php-sqlite3 php-mbstring mariadb-server mariadb-client', { stdio: 'inherit' });
+      console.log('[System] Packages successfully installed.');
+    } catch (e) {
+      console.warn('[System] Package install warning:', e);
+    }
+  }
+}
+ensureSystemPackages();
+
 // Background MariaDB check & auto-start
 let dbReady = false;
+function checkAndImportDb() {
+  try {
+    const dbs = execSync('mariadb -u root -e "SHOW DATABASES LIKE \'generation_school\';" 2>/dev/null', { encoding: 'utf-8' });
+    if (!dbs.includes('generation_school')) {
+      console.log('[Database] generation_school database not found. Creating and importing schema...');
+      execSync('mariadb -u root -e "CREATE DATABASE IF NOT EXISTS generation_school CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"');
+      const sqlPath = fs.existsSync('./database/generation_school.sql') 
+        ? './database/generation_school.sql' 
+        : (fs.existsSync('./database/school_management.sql') ? './database/school_management.sql' : '/database/school_management.sql');
+      execSync(`mariadb -u root generation_school < "${sqlPath}"`);
+      console.log('[Database] Schema and seed data successfully imported into generation_school.');
+    }
+  } catch (err) {
+    console.warn('[Database] Auto-import check warning:', err);
+  }
+}
+
 function ensureDatabase() {
   try {
     execSync('mysqladmin ping -u root >/dev/null 2>&1');
     dbReady = true;
     console.log('[Database] MariaDB is active and responding.');
+    checkAndImportDb();
   } catch {
     try {
       console.log('[Database] Starting MariaDB server daemon...');
@@ -39,12 +73,14 @@ function ensureDatabase() {
           execSync('mysqladmin ping -u root >/dev/null 2>&1');
           dbReady = true;
           console.log('[Database] MariaDB successfully connected.');
+          checkAndImportDb();
         } catch {
           // retry once more
           setTimeout(() => {
             try {
               execSync('mysqladmin ping -u root >/dev/null 2>&1');
               dbReady = true;
+              checkAndImportDb();
             } catch (err) {
               console.warn('[Database] Ping check warning:', err);
             }
@@ -65,7 +101,14 @@ function startPhpServer() {
   try {
     phpProcess = spawn('php', ['-S', '127.0.0.1:8080', 'router.php'], {
       stdio: 'inherit',
-      env: { ...process.env, DB_HOST: '127.0.0.1', DB_NAME: 'school_management', DB_USER: 'root', DB_PASS: '' }
+      env: {
+        ...process.env,
+        PHP_CLI_SERVER_WORKERS: '4',
+        DB_HOST: '127.0.0.1',
+        DB_NAME: 'generation_school',
+        DB_USER: 'root',
+        DB_PASS: ''
+      }
     });
     phpReady = true;
 

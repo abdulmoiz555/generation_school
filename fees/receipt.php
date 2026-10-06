@@ -59,24 +59,11 @@ require_once __DIR__ . '/../includes/header.php';
         <h3 class="fw-bold text-dark mb-0">Official Fee Receipt</h3>
     </div>
 
-    <!-- Print Format Switcher & Actions -->
+    <!-- Actions -->
     <div class="d-flex flex-wrap gap-2 align-items-center">
-        <!-- Print Formats Group -->
-        <div class="btn-group shadow-sm rounded-pill overflow-hidden me-1" role="group">
-            <button type="button" class="btn btn-primary active px-3">
-                <i class="fas fa-file-invoice me-1"></i> Full A4
-            </button>
-            <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $payment['id'] ?>" class="btn btn-outline-primary px-3">
-                <i class="fas fa-copy me-1"></i> Half A4 (Dual Slip)
-            </a>
-            <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $payment['id'] ?>" class="btn btn-outline-primary px-3">
-                <i class="fas fa-receipt me-1"></i> POS Thermal
-            </a>
-        </div>
-
-        <button onclick="window.print()" class="btn btn-success rounded-pill px-3 shadow-sm">
-            <i class="fas fa-print me-1"></i> Print Receipt
-        </button>
+        <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $payment['id'] ?>&autoprint=1" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
+            <i class="fas fa-print me-1"></i> Print Fee Slip (Half A4)
+        </a>
 
         <a href="<?= BASE_PATH ?>/fees/collect.php?student_id=<?= $payment['student_id'] ?>" class="btn btn-outline-dark rounded-pill px-3">
             + New Collection
@@ -91,22 +78,16 @@ require_once __DIR__ . '/../includes/header.php';
             <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 mb-1">
                 <i class="fas fa-check-circle me-1"></i> Receipt #<?= e($payment['receipt_no']) ?> Ready
             </span>
-            <h5 class="fw-bold text-dark mb-0">Print Slip Options:</h5>
-            <div class="text-muted small">Choose <strong>Half A4 Dual Slip</strong> (School & Parent copy side-by-side) or <strong>POS Thermal (80mm)</strong>.</div>
+            <h5 class="fw-bold text-dark mb-0">Official Fee Slip Printing:</h5>
+            <div class="text-muted small">Default slip is formatted for <strong>Half A4 Paper</strong> with School Copy & Parent Copy side-by-side.</div>
         </div>
         <div class="d-flex flex-wrap gap-2">
-            <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $payment['id'] ?>" class="btn btn-success fw-bold rounded-pill px-3 shadow-sm">
-                <i class="fas fa-copy me-1"></i> Print Half A4 Dual Slip
+            <a href="<?= BASE_PATH ?>/fees/receipt-half-a4.php?id=<?= $payment['id'] ?>&autoprint=1" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
+                <i class="fas fa-print me-1"></i> Print Fee Slip (Half A4)
             </a>
-            <a href="<?= BASE_PATH ?>/fees/receipt-pos.php?id=<?= $payment['id'] ?>" class="btn btn-dark fw-bold rounded-pill px-3 shadow-sm">
-                <i class="fas fa-receipt me-1"></i> Print POS Thermal (80mm)
-            </a>
-            <button type="button" onclick="triggerPrint()" class="btn btn-primary fw-bold rounded-pill px-3 shadow-sm">
-                <i class="fas fa-print me-1"></i> Print Full A4
+            <button type="button" onclick="triggerPrint()" class="btn btn-outline-primary fw-bold rounded-pill px-3 shadow-sm">
+                <i class="fas fa-file-invoice me-1"></i> Full A4 View
             </button>
-            <a href="<?= BASE_PATH ?>/fees/receipt.php?id=<?= $payment['id'] ?>&autoprint=1" target="_blank" class="btn btn-outline-primary fw-bold rounded-pill px-3 shadow-sm">
-                <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
-            </a>
         </div>
     </div>
 </div>

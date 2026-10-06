@@ -178,8 +178,11 @@ require_once __DIR__ . '/../includes/header.php';
         <a href="<?= BASE_PATH ?>/admin/roles.php" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-sm">
             <i class="fas fa-user-shield me-1"></i> Roles & Responsibilities
         </a>
-        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#addUserModal">
-            <i class="fas fa-user-plus me-1"></i> + Add Any User to System
+        <a href="<?= BASE_PATH ?>/admin/user-add.php" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-bold">
+            <i class="fas fa-user-plus me-1"></i> + Create New User
+        </a>
+        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <i class="fas fa-bolt me-1"></i> Quick Add Modal
         </button>
     </div>
 </div>

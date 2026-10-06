@@ -27,15 +27,9 @@ function isNavActive($pathPart) {
         <?php if (hasRole(['superadmin', 'admin', 'receptionist'])): ?>
         <li class="sidebar-heading">Admissions & Students</li>
         <li class="sidebar-item">
-            <a href="<?= BASE_PATH ?>/students/index.php" class="sidebar-link <?= (isNavActive('/students/') && !isNavActive('id-card.php')) ? 'active' : '' ?>">
+            <a href="<?= BASE_PATH ?>/students/index.php" class="sidebar-link <?= isNavActive('/students/') ? 'active' : '' ?>">
                 <i class="fas fa-user-graduate"></i>
                 <span>Students</span>
-            </a>
-        </li>
-        <li class="sidebar-item">
-            <a href="<?= BASE_PATH ?>/students/id-card.php" class="sidebar-link <?= isNavActive('id-card.php') ? 'active' : '' ?>">
-                <i class="fas fa-id-card"></i>
-                <span>Student ID Cards</span>
             </a>
         </li>
         <li class="sidebar-item">
@@ -109,7 +103,7 @@ function isNavActive($pathPart) {
         <li class="sidebar-item">
             <a href="<?= BASE_PATH ?>/fees/payments.php" class="sidebar-link <?= isNavActive('fees/payments.php') ? 'active' : '' ?>">
                 <i class="fas fa-print text-warning"></i>
-                <span class="fw-bold">Print Fee Slips (Half A4/POS)</span>
+                <span class="fw-bold">Print Fee Slips</span>
             </a>
         </li>
         <li class="sidebar-item">
@@ -122,6 +116,12 @@ function isNavActive($pathPart) {
             <a href="<?= BASE_PATH ?>/fees/arrears.php" class="sidebar-link <?= isNavActive('fees/arrears.php') ? 'active' : '' ?>">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span>Unpaid & Arrears</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="<?= BASE_PATH ?>/expenses/index.php" class="sidebar-link <?= isNavActive('/expenses/') ? 'active' : '' ?>">
+                <i class="fas fa-hand-holding-usd text-danger"></i>
+                <span class="fw-bold">Campus Expenses</span>
             </a>
         </li>
         <li class="sidebar-item">
@@ -144,6 +144,12 @@ function isNavActive($pathPart) {
             <a href="<?= BASE_PATH ?>/examinations/marks.php" class="sidebar-link <?= isNavActive('examinations/marks.php') ? 'active' : '' ?>">
                 <i class="fas fa-pen-alt"></i>
                 <span>Marks Entry</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="<?= BASE_PATH ?>/examinations/report-cards.php" class="sidebar-link <?= isNavActive('examinations/report-cards.php') ? 'active' : '' ?>">
+                <i class="fas fa-graduation-cap text-warning"></i>
+                <span class="fw-bold">Student Report Cards</span>
             </a>
         </li>
         <li class="sidebar-item">
@@ -207,15 +213,27 @@ function isNavActive($pathPart) {
         <?php if (hasRole(['superadmin', 'admin'])): ?>
         <li class="sidebar-heading">Operations</li>
         <li class="sidebar-item">
-            <a href="<?= BASE_PATH ?>/transport/routes.php" class="sidebar-link <?= isNavActive('/transport/') ? 'active' : '' ?>">
-                <i class="fas fa-bus"></i>
-                <span>Transport</span>
+            <a href="<?= BASE_PATH ?>/inventory/stationary.php" class="sidebar-link <?= isNavActive('stationary.php') ? 'active' : '' ?>">
+                <i class="fas fa-pencil-ruler text-warning"></i>
+                <span class="fw-bold">School Stationary</span>
             </a>
         </li>
         <li class="sidebar-item">
-            <a href="<?= BASE_PATH ?>/inventory/items.php" class="sidebar-link <?= isNavActive('/inventory/') ? 'active' : '' ?>">
+            <a href="<?= BASE_PATH ?>/transport/routes.php" class="sidebar-link <?= isNavActive('/transport/') ? 'active' : '' ?>">
+                <i class="fas fa-bus text-info"></i>
+                <span class="fw-bold">School Transport</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="<?= BASE_PATH ?>/expenses/index.php" class="sidebar-link <?= isNavActive('/expenses/') ? 'active' : '' ?>">
+                <i class="fas fa-file-invoice-dollar text-danger"></i>
+                <span class="fw-bold">Expenses</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="<?= BASE_PATH ?>/inventory/items.php" class="sidebar-link <?= (isNavActive('/inventory/') && !isNavActive('stationary.php')) ? 'active' : '' ?>">
                 <i class="fas fa-boxes"></i>
-                <span>Inventory</span>
+                <span>General Inventory</span>
             </a>
         </li>
         <?php endif; ?>
@@ -253,21 +271,15 @@ function isNavActive($pathPart) {
             </a>
         </li>
         <li class="sidebar-item">
-            <a href="<?= BASE_PATH ?>/admin/users.php" class="sidebar-link <?= isNavActive('admin/users.php') ? 'active' : '' ?>">
+            <a href="<?= BASE_PATH ?>/admin/users.php" class="sidebar-link <?= (isNavActive('admin/users.php') && !isNavActive('user-add.php')) ? 'active' : '' ?>">
                 <i class="fas fa-user-shield"></i>
                 <span>Users & Roles</span>
             </a>
         </li>
         <li class="sidebar-item">
-            <a href="<?= BASE_PATH ?>/admin/audit-logs.php" class="sidebar-link <?= isNavActive('admin/audit-logs.php') ? 'active' : '' ?>">
-                <i class="fas fa-history"></i>
-                <span>Audit Logs</span>
-            </a>
-        </li>
-        <li class="sidebar-item">
-            <a href="<?= BASE_PATH ?>/admin/backup.php" class="sidebar-link <?= isNavActive('admin/backup.php') ? 'active' : '' ?>">
-                <i class="fas fa-database"></i>
-                <span>Database Backup</span>
+            <a href="<?= BASE_PATH ?>/admin/user-add.php" class="sidebar-link <?= isNavActive('admin/user-add.php') ? 'active' : '' ?>">
+                <i class="fas fa-user-plus text-primary"></i>
+                <span class="fw-semibold">+ Create New User</span>
             </a>
         </li>
         <?php endif; ?>
